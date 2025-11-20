@@ -3,3 +3,13 @@
     Noto Sans TC,
     serif;
 }
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: #4c4b4b;
+}

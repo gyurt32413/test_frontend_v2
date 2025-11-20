@@ -1,6 +1,9 @@
 <template>
-  <button>
-    <slot />
+  <button class="w-18 font-semibold h-9 text-16px cursor-pointer border-none rounded-md" :class="`e-btn-${props.color || 'success'}`">
+    <template v-if="props.text">{{ props.text }}</template>
+    <template v-else>
+      <slot />
+    </template>
   </button>
 </template>
 
@@ -17,6 +20,16 @@ const props = withDefaults(defineProps<Props>(), {})
 .e-btn {
   // success 綠
   &-success {
+    background-color: #28a745;
+    color: white;
+
+    &:hover {
+      background-color: #218838;
+    }
+
+    &:active {
+      background-color: #1e7e34;
+    }
   }
 
   // error 紅
@@ -25,6 +38,16 @@ const props = withDefaults(defineProps<Props>(), {})
 
   // warn 黃
   &-warn {
+    background-color: #ffc107;
+    color: black;
+
+    &:hover {
+      background-color: #e0a800;
+    }
+    
+    &:active {
+      background-color: #c69500;
+    }
   }
 }
 </style>
