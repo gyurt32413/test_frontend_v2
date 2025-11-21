@@ -1,5 +1,5 @@
 <template>
-  <button class="w-18 font-semibold h-9 text-16px cursor-pointer border-none rounded-md" :class="`e-btn-${props.color || 'success'}`">
+  <button class="w-full font-semibold h-9 text-16px cursor-pointer border-none rounded-md" :class="`e-btn-${props.color || 'success'}`">
     <template v-if="props.text">{{ props.text }}</template>
     <template v-else>
       <slot />
@@ -34,6 +34,16 @@ const props = withDefaults(defineProps<Props>(), {})
 
   // error 紅
   &-error {
+    background-color: #dc3545;
+    color: white;
+
+    &:hover {
+      background-color: #c82333;
+    }
+
+    &:active {
+      background-color: #bd2130;
+    }
   }
 
   // warn 黃
@@ -44,7 +54,7 @@ const props = withDefaults(defineProps<Props>(), {})
     &:hover {
       background-color: #e0a800;
     }
-    
+
     &:active {
       background-color: #c69500;
     }
