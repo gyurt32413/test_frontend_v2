@@ -7,12 +7,12 @@
       >
         <h2 class="text-2xl font-semibold mb-4">操作</h2>
         <div class="mb-6 w-full">
-          <ETextField v-model:input-value="formData.name" id="user-name" label="名字" />
+          <ETextField v-model:input-value="inputFormData.name" id="user-name" label="名字" />
         </div>
 
         <div class="w-full">
           <ETextField
-            v-model:input-value="formData.age"
+            v-model:input-value="inputFormData.age"
             id="user-age"
             label="年齡"
             inputType="number"
@@ -43,25 +43,19 @@
               <th class="px-8 py-2">操作</th>
             </tr>
           </thead>
+
           <tbody>
-            <tr class="text-center">
-              <td class="px-8 py-2">1</td>
-              <td class="px-8 py-2">張三</td>
-              <td class="px-8 py-2">25</td>
-              <td class="px-8 py-2 flex space-x-2">
-                <EBtn text="修改" />
-                <EBtn text="刪除" color="error" />
-              </td>
-            </tr>
-            <tr>
-              <td class="px-8 py-2">2</td>
-              <td class="px-8 py-2">李四</td>
-              <td class="px-8 py-2">30</td>
-              <td class="px-8 py-2 flex space-x-2">
-                <EBtn text="修改" />
-                <EBtn text="刪除" color="error" />
-              </td>
-            </tr>
+            <template v-for="(user, index) in userList" :key="user?.id || `user-${index}`">
+              <tr class="text-center">
+                <td class="px-8 py-2">{{ user.id }}</td>
+                <td class="px-8 py-2">{{ user.name }}</td>
+                <td class="px-8 py-2">{{ user.age }}</td>
+                <td class="px-8 py-2 flex space-x-2">
+                  <EBtn text="修改" />
+                  <EBtn text="刪除" color="error" />
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </section>
@@ -70,11 +64,34 @@
 </template>
 
 <script setup lang="ts">
+import { useAppStore } from '~/store/app'
+const appStore = useAppStore()
+
+const { setUserList } = appStore
+const { userList } = storeToRefs(appStore)
+
 const baseUrl = 'https://2869.wu.elitepro.ltd' // 後端網址 將由面試官提供
 
-const formData = ref({
+const inputFormData = ref({
   name: '',
   age: null,
+})
+
+const {
+  data: userData,
+  error,
+  refresh,
+} = await useFetch(`${baseUrl}/api/user`, {
+  key: 'fetch-user-data',
+  onResponse({ response }) {
+    console.log('fetch user data', response._data)
+    if (response._data?.data && Array.isArray(response._data.data)) {
+      setUserList(response._data.data)
+    }
+  },
+  onResponseError({ response }) {
+    console.error('Error fetching user data:', response.status, response._data)
+  },
 })
 </script>
 
