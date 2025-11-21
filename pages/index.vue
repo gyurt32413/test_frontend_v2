@@ -25,7 +25,11 @@
           </div>
 
           <div class="w-18">
-            <EBtn text="新增" color="warn" />
+            <EBtn
+              text="新增"
+              color="warn"
+              @click="addUser(inputFormData.name, inputFormData.age)"
+            />
           </div>
         </div>
       </section>
@@ -51,8 +55,8 @@
                 <td class="px-8 py-2">{{ user.name }}</td>
                 <td class="px-8 py-2">{{ user.age }}</td>
                 <td class="px-8 py-2 flex space-x-2">
-                  <EBtn text="修改" />
-                  <EBtn text="刪除" color="error" />
+                  <EBtn text="修改" @click="modifyUser(12, 'test', 41)"  />
+                  <EBtn text="刪除" color="error" @click="deleteUser(user.id)" />
                 </td>
               </tr>
             </template>
@@ -64,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import axios from 'axios'
 import { useAppStore } from '~/store/app'
 const appStore = useAppStore()
 
@@ -74,14 +79,97 @@ const baseUrl = 'https://2869.wu.elitepro.ltd' // 後端網址 將由面試官�
 
 const inputFormData = ref({
   name: '',
-  age: null,
+  age: '',
 })
 
-const {
-  data: userData,
-  error,
-  refresh,
-} = await useFetch(`${baseUrl}/api/user`, {
+const errorMessage = ref({
+  name: '',
+  age: '',
+})
+
+const validateInputName = (): boolean => {
+  return inputFormData.value.name.trim().length > 0
+}
+
+const validateInputAge = (): boolean => {
+  const ageNumber = Number(inputFormData.value.age)
+  return !isNaN(ageNumber) && ageNumber > 0 && Number.isInteger(ageNumber)
+}
+
+const addUser = async (name: string, age: number | string) => {
+  try {
+    const params = {
+      name,
+      age: Number(age),
+    }
+
+    const response = await axios.post(`${baseUrl}/api/user`, params)
+
+    console.log('add user response', response)
+
+    if (response.data && response.data.data) {
+      const newUser = {
+        id: response.data.data.id,
+        name,
+        age: Number(age),
+      }
+
+      // 新增成功後，更新使用者清單
+      setUserList([...userList.value, newUser])
+      // 清空輸入欄位
+      inputFormData.value.name = ''
+      inputFormData.value.age = ''
+    }
+  } catch (error) {
+    console.error('Error adding user:', error)
+  }
+}
+
+const deleteUser = async (userId: number) => {
+  try {
+    const response = await axios.delete(`${baseUrl}/api/user`, {
+      data: {
+        id: userId,
+      },
+    })
+
+    console.log('delete user response', response)
+
+    if (response.status === 200) {
+      // 刪除成功後，更新使用者清單
+      const updatedUserList = userList.value.filter((user) => user.id !== userId)
+      setUserList(updatedUserList)
+      console.log('User deleted successfully', userList.value)
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error)
+  }
+}
+
+const modifyUser = async (userId: number, name: string, age: number | string) => {
+  try {
+    const params = {
+      id: userId,
+      name,
+      age: Number(age),
+    }
+
+    const response = await axios.put(`${baseUrl}/api/user`, params)
+
+    if (response.status === 200) {
+      // 修改成功後，更新使用者清單
+      const updatedUserList = userList.value.map((user) =>
+        user.id === userId ? { ...user, name, age: Number(age) } : user
+      )
+      setUserList(updatedUserList)
+    }
+  } catch (error) {
+    console.error('Error modifying user:', error)
+  }
+}
+
+// SSR 取得使用者清單
+const { data: userData, error } = await useFetch(`${baseUrl}/api/user`, {
   key: 'fetch-user-data',
   onResponse({ response }) {
     console.log('fetch user data', response._data)
