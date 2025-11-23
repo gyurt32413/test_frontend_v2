@@ -1,14 +1,15 @@
 <template>
-  <div class="min-h-screen">
+  <div class="pt-30">
     <main class="space-y-8">
       <!-- 使用者操作框 -->
       <section
         class="max-w-640px min-h-360px flex flex-col items-center text-white mx-auto border border-coolGray rounded-2xl border-solid px-20"
       >
         <div class="text-2xl font-semibold mb-4">操作</div>
-        <div class="mb-6 w-full">
+        <div class="w-full">
           <ETextField v-model:input-value="inputFormData.name" id="user-name" label="名字" />
         </div>
+        <div class="text-red-500 text-sm mb-2 w-full">{{ errorMessage.name }}</div>
 
         <div class="w-full">
           <ETextField
@@ -18,17 +19,14 @@
             inputType="number"
           />
         </div>
+        <div class="text-red-500 text-sm w-full">{{ errorMessage.age }}</div>
 
         <div class="mt-10 flex space-x-4 ml-auto">
-          <div class="w-18">
-            <EBtn text="修改" />
-          </div>
-
           <div class="w-18">
             <EBtn
               text="新增"
               color="warn"
-              @click="addUser(inputFormData.name, inputFormData.age)"
+              @click="openDialog({ name: inputFormData.name, age: inputFormData.age }, 'add')"
             />
           </div>
         </div>
@@ -67,13 +65,13 @@
                 <td class="px-8 py-2 align-middle">
                   <div class="flex space-x-2 justify-center">
                     <template v-if="currentEditUserId === user.id">
-                      <EBtn text="儲存" @click="openDialog" />
+                      <EBtn text="儲存" @click="openDialog(user, 'edit')" />
                       <EBtn text="取消" color="warn" @click="cancelEdit" />
                     </template>
 
                     <template v-else>
                       <EBtn text="修改" @click="handleModifyUser(user.id)" />
-                      <EBtn text="刪除" color="error" @click="deleteUser(user.id)" />
+                      <EBtn text="刪除" color="error" @click="openDialog(user, 'delete')" />
                     </template>
                   </div>
                 </td>
@@ -84,20 +82,19 @@
       </section>
     </main>
 
-    <div>{{ isDialogOpen }}</div>
-
+    <!-- 確認操作彈出視窗 -->
     <dialog ref="dialogRef" class="rounded-lg space-y-4 text-center p-8 bg-gray-800 text-white">
-      <div class="text-18px">確認是否進行以下修改?</div>
+      <div class="text-18px">{{ dialogText }}</div>
 
       <div>
-        <div>#{{ editedFormData.id }}</div>
-        <div>名字：{{ editedFormData.name }}</div>
-        <div>年齡：{{ editedFormData.age }}</div>
+        <div>#{{ currentDialogUser?.id }}</div>
+        <div>名字：{{ currentDialogUser?.name }}</div>
+        <div>年齡：{{ currentDialogUser?.age }}</div>
       </div>
 
       <div class="flex space-x-2">
-        <EBtn text="取消" color="warn" @click="cancelEdit" />
-        <EBtn text="確認修改" />
+        <EBtn text="取消" color="warn" @click="closeDialog" />
+        <EBtn text="確認" @click="handleConfirmDialog" />
       </div>
     </dialog>
   </div>
@@ -111,20 +108,71 @@ const appStore = useAppStore()
 const { setUserList } = appStore
 const { userList } = storeToRefs(appStore)
 
+type User = {
+  id?: number
+  name: string
+  age: number | string
+}
+
 const baseUrl = 'https://2869.wu.elitepro.ltd' // 後端網址 將由面試官提供
 
-// Dialog 控制
+// === Dialog 控制 ===
 const dialogRef = ref<HTMLDialogElement | null>(null)
 const isDialogOpen = ref(false)
+const currentDialogUser = ref<User | null>(null)
+const currentDialogStatus = ref<'add' | 'edit' | 'delete' | null>(null)
 
-const openDialog = () => {
+const dialogText = computed(() => {
+  if (currentDialogStatus.value === 'edit') {
+    return `確認是否修改使用者 ${currentDialogUser.value?.name} 的資料?`
+  } else if (currentDialogStatus.value === 'delete') {
+    return `確認是否刪除使用者 ${currentDialogUser.value?.name} ?`
+  } else if (currentDialogStatus.value === 'add') {
+    return `確認是否新增使用者 ${currentDialogUser.value?.name} ?`
+  } else {
+    return ''
+  }
+})
+
+const openDialog = (user: User, dialogStatus: 'add' | 'edit' | 'delete') => {
+  if (dialogStatus === 'add') {
+    const isValidName = validateInputName()
+    const isValidAge = validateInputAge()
+
+    if (!isValidName || !isValidAge) {
+      return
+    }
+  }
+
+  currentDialogUser.value = user
+  currentDialogStatus.value = dialogStatus
+
   dialogRef.value?.showModal()
   isDialogOpen.value = true
 }
 
 const closeDialog = () => {
+  currentDialogUser.value = null
+  currentDialogStatus.value = null
+
   dialogRef.value?.close()
   isDialogOpen.value = false
+}
+
+const handleConfirmDialog = () => {
+  if (currentDialogStatus.value === 'edit') {
+    confirmEdit()
+  } else if (currentDialogStatus.value === 'delete') {
+    if (currentDialogUser.value?.id) {
+      deleteUser(currentDialogUser.value.id)
+    }
+  } else if (currentDialogStatus.value === 'add') {
+    if (currentDialogUser.value) {
+      addUser(currentDialogUser.value.name, currentDialogUser.value.age)
+    }
+  }
+
+  closeDialog()
 }
 
 watchEffect(() => {
@@ -132,6 +180,7 @@ watchEffect(() => {
     isDialogOpen.value = false
   })
 })
+// === Dialog 控制 end ===
 
 const inputFormData = ref({
   name: '',
@@ -180,17 +229,38 @@ const handleModifyUser = (userId: number) => {
 
 const cancelEdit = () => {
   setCurrentEditUserId(null)
-  closeDialog()
+}
+
+const confirmEdit = async () => {
+  await modifyUser(editedFormData.value.id, editedFormData.value.name, editedFormData.value.age)
+  setCurrentEditUserId(null)
 }
 // === 編輯使用者相關 end ===
 
 const validateInputName = (): boolean => {
-  return inputFormData.value.name.trim().length > 0
+  if (inputFormData.value.name.trim().length > 0) {
+    errorMessage.value.name = ''
+
+    return true
+  } else {
+    errorMessage.value.name = '名字不可為空'
+
+    return false
+  }
 }
 
 const validateInputAge = (): boolean => {
   const ageNumber = Number(inputFormData.value.age)
-  return !isNaN(ageNumber) && ageNumber > 0 && Number.isInteger(ageNumber)
+
+  if (!isNaN(ageNumber) && ageNumber > 0 && Number.isInteger(ageNumber)) {
+    errorMessage.value.age = ''
+
+    return true
+  } else {
+    errorMessage.value.age = '年齡需為正整數'
+
+    return false
+  }
 }
 
 const addUser = async (name: string, age: number | string) => {
