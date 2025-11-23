@@ -91,4 +91,14 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/style.scss'],
+
+  // 靜態站點生成配置
+  ssr: true,
+  
+  // 運行時配置
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.VITE_API_URL || 'https://2869.wu.elitepro.ltd'
+    }
+  }
 })
