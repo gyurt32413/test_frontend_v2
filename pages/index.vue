@@ -101,8 +101,8 @@
 </template>
 
 <script setup lang="ts">
-import axios from 'axios'
 import { useAppStore } from '~/store/app'
+import { UserApi, Configuration } from '~/generated/api'
 const appStore = useAppStore()
 
 const { setUserList } = appStore
@@ -114,7 +114,15 @@ type User = {
   age: number | string
 }
 
-const baseUrl = 'https://2869.wu.elitepro.ltd' // 後端網址 將由面試官提供
+const baseUrl = import.meta.env.VITE_API_URL // 後端網址 將由面試官提供
+
+// API 配置
+const config = new Configuration({
+  basePath: `${baseUrl}/api`,
+})
+
+// 創建 API 實例
+const userApi = new UserApi(config)
 
 // === Dialog 控制 ===
 const dialogRef = ref<HTMLDialogElement | null>(null)
@@ -270,13 +278,12 @@ const addUser = async (name: string, age: number | string) => {
       age: Number(age),
     }
 
-    const response = await axios.post(`${baseUrl}/api/user`, params)
-
-    console.log('add user response', response)
+    const response = await userApi.createUserInfo(params)
 
     if (response.data && response.data.data) {
+      const responseData = response.data.data as { id: number }
       const newUser = {
-        id: response.data.data.id,
+        id: responseData.id,
         name,
         age: Number(age),
       }
@@ -294,19 +301,12 @@ const addUser = async (name: string, age: number | string) => {
 
 const deleteUser = async (userId: number) => {
   try {
-    const response = await axios.delete(`${baseUrl}/api/user`, {
-      data: {
-        id: userId,
-      },
-    })
-
-    console.log('delete user response', response)
+    const response = await userApi.deleteUserInfo({ id: userId })
 
     if (response.status === 200) {
       // 刪除成功後，更新使用者清單
       const updatedUserList = userList.value.filter((user) => user.id !== userId)
       setUserList(updatedUserList)
-      console.log('User deleted successfully', userList.value)
     }
   } catch (error) {
     console.error('Error deleting user:', error)
@@ -321,7 +321,8 @@ const modifyUser = async (userId: number, name: string, age: number | string) =>
       age: Number(age),
     }
 
-    const response = await axios.put(`${baseUrl}/api/user`, params)
+    const response = await userApi.updateUserInfo(params)
+    
 
     if (response.status === 200) {
       // 修改成功後，更新使用者清單
@@ -339,7 +340,6 @@ const modifyUser = async (userId: number, name: string, age: number | string) =>
 const { data: userData, error } = await useFetch(`${baseUrl}/api/user`, {
   key: 'fetch-user-data',
   onResponse({ response }) {
-    console.log('fetch user data', response._data)
     if (response._data?.data && Array.isArray(response._data.data)) {
       setUserList(response._data.data)
     }
