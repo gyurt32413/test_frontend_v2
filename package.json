@@ -3,16 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "pnpm api:gen:vercel && nuxt build",
     "dev": "nuxt dev",
-    "generate": "nuxt generate",
+    "generate": "pnpm api:gen:vercel && nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "api:download": "dotenv -e .env -- bash -c 'curl -o swagger.json $VITE_API_URL/swagger/doc.json'",
     "api:generate": "openapi-generator-cli generate -i swagger.json -g typescript-axios -o ./generated/api --additional-properties=supportsES6=true,withInterfaces=true,withSeparateModelsAndApi=true,apiPackage=api,modelPackage=models",
-    "api:gen": "pnpm api:download && pnpm api:generate"
+    "api:gen": "pnpm api:download && pnpm api:generate",
+    "api:gen:vercel": "curl -o swagger.json $VITE_API_URL/swagger/doc.json && pnpm api:generate"
   },
   "dependencies": {
     "@nuxt/image": "^1.11.0",

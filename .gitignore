@@ -24,5 +24,5 @@ logs
 !.env.example
 
 # OpenAPI Generator
-generated/
 swagger.json
+# generated/ - 提交到 Git 以便部署使用
