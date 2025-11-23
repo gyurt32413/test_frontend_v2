@@ -1,11 +1,11 @@
 <template>
-  <div class="pt-30">
-    <main class="space-y-8">
+  <div class="pt-8 md:pt-20 lg:pt-30 px-2 md:px-4">
+    <main class="space-y-4 md:space-y-6 lg:space-y-8">
       <!-- 使用者操作框 -->
       <section
-        class="max-w-640px min-h-360px flex flex-col items-center text-white mx-auto border border-coolGray rounded-2xl border-solid px-20"
+        class="max-w-640px min-h-300px flex flex-col items-center text-white mx-auto border border-coolGray rounded-2xl border-solid px-4 md:px-10 lg:px-20"
       >
-        <div class="text-2xl font-semibold mb-4">操作</div>
+        <div class="text-xl md:text-2xl font-semibold mb-4">操作</div>
         <div class="w-full">
           <ETextField v-model:input-value="inputFormData.name" id="user-name" label="名字" />
         </div>
@@ -21,8 +21,8 @@
         </div>
         <div class="text-red-500 text-sm w-full">{{ errorMessage.age }}</div>
 
-        <div class="mt-10 flex space-x-4 ml-auto">
-          <div class="w-18">
+        <div class="mt-6 md:mt-10 flex space-x-2 md:space-x-4 ml-auto">
+          <div class="w-16 md:w-18">
             <EBtn
               text="新增"
               color="warn"
@@ -34,38 +34,38 @@
 
       <!-- 用戶資料清單 -->
       <section
-        class="max-w-640px min-h-360px flex py-4 flex-col items-center text-white mx-auto border border-coolGray rounded-2xl border-solid px-10"
+        class="max-w-640px min-h-360px flex py-4 flex-col items-center text-white mx-auto border border-coolGray rounded-2xl border-solid px-2 md:px-6 lg:px-10 overflow-x-auto"
       >
-        <table>
-          <thead class="text-18px">
+        <table class="w-full min-w-300px">
+          <thead class="text-14px md:text-16px lg:text-18px">
             <tr>
-              <th class="px-8 py-2">#</th>
-              <th class="px-8 py-2">名字</th>
-              <th class="px-8 py-2">年齡</th>
-              <th class="px-8 py-2">操作</th>
+              <th class="px-2 md:px-4 lg:px-8 py-2">#</th>
+              <th class="px-2 md:px-4 lg:px-8 py-2">名字</th>
+              <th class="px-2 md:px-4 lg:px-8 py-2">年齡</th>
+              <th class="px-2 md:px-4 lg:px-8 py-2">操作</th>
             </tr>
           </thead>
 
           <tbody>
             <template v-for="(user, index) in userList" :key="user?.id || `user-${index}`">
-              <tr class="text-center">
-                <td class="px-8 py-2 align-middle">{{ user.id }}</td>
-                <td class="px-8 py-2 align-middle">
-                  <div v-if="currentEditUserId === user.id" class="w-24">
+              <tr class="text-center text-12px md:text-14px lg:text-16px">
+                <td class="px-2 md:px-4 lg:px-8 py-2 align-middle">{{ user.id }}</td>
+                <td class="px-2 md:px-4 lg:px-8 py-2 align-middle">
+                  <div v-if="currentEditUserId === user.id" class="w-16 md:w-20 lg:w-24 mx-auto">
                     <ETextField v-model:input-value="editedFormData.name" :is-text-center="true" />
                   </div>
-                  <div class="w-24" v-else>{{ user.name }}</div>
+                  <div class="w-16 md:w-20 lg:w-24 mx-auto" v-else>{{ user.name }}</div>
                 </td>
-                <td class="px-8 py-2 align-middle">
-                  <div v-if="currentEditUserId === user.id" class="w-10">
+                <td class="px-2 md:px-4 lg:px-8 py-2 align-middle">
+                  <div v-if="currentEditUserId === user.id" class="w-8 md:w-10 mx-auto">
                     <ETextField v-model:input-value="editedFormData.age" :is-text-center="true" />
                   </div>
-                  <div class="w-10" v-else>{{ user.age }}</div>
+                  <div class="w-8 md:w-10 mx-auto" v-else>{{ user.age }}</div>
                 </td>
-                <td class="px-8 py-2 align-middle">
-                  <div class="flex space-x-2 justify-center">
+                <td class="px-2 md:px-4 lg:px-8 py-2 align-middle">
+                  <div class="flex space-x-1 md:space-x-2 justify-center">
                     <template v-if="currentEditUserId === user.id">
-                      <EBtn text="儲存" @click="openDialog(user, 'edit')" />
+                      <EBtn text="儲存" @click="openDialog(editedFormData, 'edit')" />
                       <EBtn text="取消" color="warn" @click="cancelEdit" />
                     </template>
 
@@ -83,18 +83,22 @@
     </main>
 
     <!-- 確認操作彈出視窗 -->
-    <dialog ref="dialogRef" class="rounded-lg space-y-4 text-center p-8 bg-gray-800 text-white">
-      <div class="text-18px">{{ dialogText }}</div>
+    <dialog ref="dialogRef" class="rounded-lg space-y-4 text-center p-4 md:p-6 lg:p-8 bg-gray-800 text-white w-90vw md:w-auto max-w-400px">
+      <div class="text-16px md:text-18px">{{ dialogText }}</div>
 
-      <div>
+      <div class="text-14px md:text-16px">
         <div>#{{ currentDialogUser?.id }}</div>
         <div>名字：{{ currentDialogUser?.name }}</div>
         <div>年齡：{{ currentDialogUser?.age }}</div>
       </div>
 
-      <div class="flex space-x-2">
-        <EBtn text="取消" color="warn" @click="closeDialog" />
-        <EBtn text="確認" @click="handleConfirmDialog" />
+      <div class="flex space-x-2 justify-center">
+        <div class="w-16 md:w-18">
+          <EBtn text="取消" color="warn" @click="closeDialog" />
+        </div>
+        <div class="w-16 md:w-18">
+          <EBtn text="確認" @click="handleConfirmDialog" />
+        </div>
       </div>
     </dialog>
   </div>
