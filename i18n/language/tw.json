@@ -1,4 +1,15 @@
 {
   "welcome": "歡迎",
-  "test": "測試"
+  "test": "測試",
+  "operation": "操作",
+  "name": "名字",
+  "age": "年齡",
+  "modify": "修改",
+  "add": "新增",
+  "delete": "刪除",
+  "save": "儲存",
+  "cancel": "取消",
+  "userList": "使用者清單",
+  "noData": "無資料",
+  "close": "關閉"
 }

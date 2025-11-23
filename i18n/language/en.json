@@ -1,4 +1,15 @@
 {
   "welcome": "Welcome",
-  "test": "Test"
+  "test": "Test",
+  "operation": "Operation",
+  "name": "Name",
+  "age": "Age",
+  "modify": "Modify",
+  "add": "Add",
+  "delete": "Delete",
+  "save": "Save",
+  "cancel": "Cancel",
+  "userList": "User List",
+  "noData": "No Data",
+  "close": "Close"
 }
